@@ -1,6 +1,7 @@
 ![YIAP: IAP Helpers](./banner.png) 
 
 [![License](http://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://github.com/sotownsend/yipyap/blob/master/LICENSE)
+[![Build Status](https://circleci.com/gh/sotownsend/yiap.png?circle-token=:circle-token)](https://circleci.com/gh/sotownsend/yiap)
 
 # What is this?
 
