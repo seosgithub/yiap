@@ -6,6 +6,7 @@ machine:
 dependencies:
   pre:
     - go get github.com/tools/godep
+    - go get github.com/smartystreets/goconvey/convey 
 
   override:
     - mkdir -p "$GOPATH/src/$IMPORT_PATH"
