@@ -1,0 +1,4 @@
+package yiap
+
+func Hello() {
+}
