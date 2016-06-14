@@ -41,7 +41,8 @@ receiptRequest := "<base64 request from client>"
 password := "" // Set to your shared-secret if your verifying subscriptions, else blank.
 
 // Also verifies receipt
-receipt, err := yiap.RequestAppleReceipt(receiptRequest, password)
+isProduction := true
+receipt, err := yiap.RequestAppleReceipt(receiptRequest, password, isProduction)
 checkErr(err)
 
 // Retrieve transactions.  If duplicates of the same transaction appear
