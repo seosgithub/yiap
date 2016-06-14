@@ -1,4 +1,0 @@
-package yiap
-
-func Hello() {
-}
