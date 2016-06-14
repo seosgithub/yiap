@@ -56,8 +56,9 @@ for _, tx := range transactions {
   purchaseDate := tx.GetPurchaseDate()
   expireDate := tx.GetExpiredDate()
   isTrial := tx.GetIsTrial()
+  quantity := tx.GetQuantity()
 
-  InsertIntoDBUniq(transactionId, productId, purchaseDate, expiredDate, isTrial, receiptRequest)
+  InsertIntoDBUniq(transactionId, productId, purchaseDate, expiredDate, isTrial, receiptRequest, quantity)
 }
 ```
 

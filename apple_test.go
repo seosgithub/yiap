@@ -24,6 +24,7 @@ func TestYiap(t *testing.T) {
 		So(txns[0].GetPurchaseDate().Unix(), ShouldEqual, 14652577490)
 		So(txns[0].GetExpiredDate().Unix(), ShouldEqual, 14652580490)
 		So(txns[0].GetIsTrial(), ShouldEqual, false)
+		So(txns[0].GetQuantity(), ShouldEqual, 1)
 	})
 
 	// Sometimes? apple receipts may contain entries in in-app seciton of the receipt which do not

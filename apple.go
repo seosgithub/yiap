@@ -14,7 +14,7 @@ import (
 
 // Each transaction represents one payment from apple.
 type AppleTransaction struct {
-	//Quantity      int       `json: "quantity"`
+	Quantity     string `json: "quantity"`
 	PurchaseDate string `json:"purchase_date_ms"`
 	ExpiredDate  string `json:"expires_date_ms"`
 	IsTrial      int    `json:"is_trial"`
@@ -112,6 +112,14 @@ func (t *AppleTransaction) GetTransactionId() string {
 
 func (t *AppleTransaction) GetProductId() string {
 	return t.ProductId
+}
+
+func (t *AppleTransaction) GetQuantity() int64 {
+	v, err := strconv.ParseInt(t.Quantity, 10, 64)
+	if err != nil {
+		return 1
+	}
+	return v
 }
 
 /*
