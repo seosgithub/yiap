@@ -42,7 +42,7 @@ password := "" // Set to your shared-secret if your verifying subscriptions, els
 
 // Also verifies receipt
 isProduction := true
-receipt, err := yiap.RequestAppleReceipt(receiptRequest, password, isProduction)
+receipt, err := yiap.ProcessAppleIAPRequestPayload(receiptRequest, password, isProduction)
 checkErr(err)
 
 // Retrieve transactions.  If duplicates of the same transaction appear

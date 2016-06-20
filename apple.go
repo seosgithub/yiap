@@ -20,7 +20,7 @@ import (
 // Each transaction represents one payment from apple.
 type AppleTransaction struct {
 	Quantity     string `json: "quantity"`
-	PurchaseDate string `json:"purchase_date_ms"`
+	PurchaseDate string `json:"original_purchase_date_ms"`
 	ExpiredDate  string `json:"expires_date_ms"`
 	IsTrial      int    `json:"is_trial"`
 
@@ -46,10 +46,10 @@ type AppleReceiptResponse struct {
 */
 
 // Returns a set of apple transactions from a response
-func NewAppleReceiptResponseFromData(resp []byte) (*AppleReceiptResponse, error) {
+func NewAppleReceiptResponseFromData(resp string) (*AppleReceiptResponse, error) {
 	var receipt AppleReceiptResponse
 
-	if err := json.Unmarshal(resp, &receipt); err != nil {
+	if err := json.Unmarshal([]byte(resp), &receipt); err != nil {
 		return nil, err
 	}
 
@@ -60,8 +60,14 @@ var specOverrideAppleIAPRequestEndpoint string
 
 // Contacts apples servers and retrieves a receipt. Password is optional
 // for non-subscription type receipts
-func ProcessAppleIAPRequestPayload(payload []byte, password string, isProduction bool) (*AppleReceiptResponse, error) {
-	payloadStr := strings.TrimSpace(string(payload)) // Payload must not have a newline
+func ProcessAppleIAPRequestPayload(payload string, password string, isProduction bool) (*AppleReceiptResponse, error) {
+	payloadStr := strings.TrimSpace(payload) // Payload must not have a newline
+
+	if strings.Contains(payloadStr, "mock_response:") {
+		payloadStr = strings.Replace(payloadStr, "mock_response:", "", 1)
+		return NewAppleReceiptResponseFromData(payloadStr)
+	}
+
 	info := map[string]interface{}{
 		"receipt-data": payloadStr,
 		"password":     password,
@@ -105,7 +111,7 @@ func ProcessAppleIAPRequestPayload(payload []byte, password string, isProduction
 		return nil, fmt.Errorf("ProcessAppleIAPRequestPayload: Tried to read request from apple but got a non-200 status code (got '%d'). Request payload was: '%s', Apple's response payload was: '%s'", payloadStr[:10], resp.StatusCode, body)
 	}
 
-	receipt, err := NewAppleReceiptResponseFromData(body)
+	receipt, err := NewAppleReceiptResponseFromData(string(body))
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +174,7 @@ func (t *AppleTransaction) GetPurchaseDate() time.Time {
 	if err != nil {
 		return time.Unix(-1, 0)
 	}
-	return time.Unix(v/100, 0)
+	return time.Unix(v/1000, 0)
 }
 
 func (t *AppleTransaction) GetExpiredDate() time.Time {
@@ -176,7 +182,7 @@ func (t *AppleTransaction) GetExpiredDate() time.Time {
 	if err != nil {
 		return time.Unix(-1, 0)
 	}
-	return time.Unix(v/100, 0)
+	return time.Unix(v/1000, 0)
 }
 
 func (t *AppleTransaction) GetIsTrial() bool {
@@ -207,6 +213,7 @@ func (t *AppleTransaction) GetQuantity() int64 {
 
 /*
 	---------------------------------------------------------------------------
+
 	Helpers
 	---------------------------------------------------------------------------
 */

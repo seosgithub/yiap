@@ -14,7 +14,7 @@ func TestYiap(t *testing.T) {
 	Convey("Can decode apple receipt", t, func() {
 		responseCode := getFixtureWithPath("apple/receipt0_response.json")
 
-		receipt, err := NewAppleReceiptResponseFromData([]byte(responseCode))
+		receipt, err := NewAppleReceiptResponseFromData(responseCode)
 		checkErr(err)
 
 		So(receipt.GetStatus(), ShouldEqual, false)
@@ -25,8 +25,9 @@ func TestYiap(t *testing.T) {
 
 		So(txns[0].GetProductId(), ShouldEqual, "com.justalab.cloudplayer.premium")
 		So(txns[0].GetTransactionId(), ShouldEqual, "1000000215946012")
-		So(txns[0].GetPurchaseDate().Unix(), ShouldEqual, 14652577490)
-		So(txns[0].GetExpiredDate().Unix(), ShouldEqual, 14652580490)
+		So(txns[0].GetPurchaseDate().Unix(), ShouldEqual, 1465257749)
+		So(txns[0].GetExpiredDate().Unix(), ShouldEqual, 1465258049)
+		fmt.Printf("%s", txns[0].GetExpiredDate())
 		So(txns[0].GetIsTrial(), ShouldEqual, false)
 		So(txns[0].GetQuantity(), ShouldEqual, 1)
 	})
@@ -34,7 +35,7 @@ func TestYiap(t *testing.T) {
 	Convey("Can decode another apple receipt", t, func() {
 		responseCode := getFixtureWithPath("apple/receipt2_response.json")
 
-		receipt, err := NewAppleReceiptResponseFromData([]byte(responseCode))
+		receipt, err := NewAppleReceiptResponseFromData(responseCode)
 		checkErr(err)
 
 		So(receipt.GetStatus(), ShouldEqual, false)
@@ -51,13 +52,23 @@ func TestYiap(t *testing.T) {
 		// transaction id is not listed in the latest_receipt_info
 		responseCode := getFixtureWithPath("apple/receipt1_response_fake.json")
 
-		receipt, err := NewAppleReceiptResponseFromData([]byte(responseCode))
+		receipt, err := NewAppleReceiptResponseFromData(responseCode)
 		checkErr(err)
 
 		So(receipt.GetStatus(), ShouldEqual, false)
 		So(receipt.EnvironmentIsSandbox(), ShouldEqual, true)
 
 		// 7 Unique transactions (6 in the `latest_receipt_info` and 1 in the `in_app` purchase section.
+		So(len(receipt.GetTransactions()), ShouldEqual, 7)
+	})
+
+	Convey("Can mock getting receipt from apple by passing mock_response:resp json>", t, func() {
+		password := "password"
+		respPayload := "mock_response:" + getFixtureWithPath("apple/receipt1_response.json")
+		var err error
+		receipt, err := ProcessAppleIAPRequestPayload(respPayload, password, false)
+		checkErr(err)
+
 		So(len(receipt.GetTransactions()), ShouldEqual, 7)
 	})
 
@@ -75,7 +86,7 @@ func TestYiap(t *testing.T) {
 		// JSON receipt
 		password := "password"
 		specOverrideAppleIAPRequestEndpoint = url
-		receipt, err := ProcessAppleIAPRequestPayload([]byte(requestPayload), password, false)
+		receipt, err := ProcessAppleIAPRequestPayload(requestPayload, password, false)
 		checkErr(err)
 
 		So(receipt.GetStatus(), ShouldEqual, false)
@@ -101,7 +112,7 @@ func TestYiap(t *testing.T) {
 		// Send our bogus request
 		password := "password"
 		specOverrideAppleIAPRequestEndpoint = url
-		_, err := ProcessAppleIAPRequestPayload([]byte(requestPayload), password, false)
+		_, err := ProcessAppleIAPRequestPayload(requestPayload, password, false)
 		So(err, ShouldNotEqual, nil)
 		So(strings.Contains(fmt.Sprintf("%s", err), "uh oh"), ShouldEqual, true)
 
@@ -113,13 +124,13 @@ func TestYiap(t *testing.T) {
 
 		// Forward a bogus password so our request fails
 		password := "password"
-		_, err := ProcessAppleIAPRequestPayload([]byte(requestPayload), password, true)
+		_, err := ProcessAppleIAPRequestPayload(requestPayload, password, true)
 
 		// Should fail with a 21007 error (should not be in a production environment)
 		So(err, ShouldNotEqual, nil)
 		So(strings.Contains(fmt.Sprintf("%s", err), "21007"), ShouldEqual, true)
 
-		_, err = ProcessAppleIAPRequestPayload([]byte(requestPayload), password, false)
+		_, err = ProcessAppleIAPRequestPayload(requestPayload, password, false)
 
 		// Password is invalid
 		So(err, ShouldNotEqual, nil)
