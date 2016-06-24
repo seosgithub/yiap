@@ -75,21 +75,26 @@ func ProcessAppleIAPRequestPayload(payload string, password string, isProduction
 
 	infoJson, err := json.Marshal(info)
 	if err != nil {
-		return nil, fmt.Errorf("ProcessAppleIAPRequestPayload: Tried to marhshal payload '%s'...: %s", payloadStr[0:10], err)
+		return nil, fmt.Errorf("ProcessAppleIAPRequestPayload: Tried to marhshal payload '%s'...: %s", payloadStr, err)
 	}
 
-	var url string
-
-	if specOverrideAppleIAPRequestEndpoint == "" {
-		if isProduction {
-			url = "https://buy.itunes.apple.com/verifyReceipt"
-		} else {
-			url = "https://sandbox.itunes.apple.com/verifyReceipt"
+	response, err := _ProcessAppleIAPRequestPayload(infoJson, "https://buy.itunes.apple.com/verifyReceipt")
+	if err != nil {
+		url := "https://sandbox.itunes.apple.com/verifyReceipt"
+		if specOverrideAppleIAPRequestEndpoint != "" {
+			url = specOverrideAppleIAPRequestEndpoint
 		}
-	} else {
-		url = specOverrideAppleIAPRequestEndpoint
+		response, err = _ProcessAppleIAPRequestPayload(infoJson, url)
 	}
 
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func _ProcessAppleIAPRequestPayload(infoJson []byte, url string) (*AppleReceiptResponse, error) {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(infoJson))
 	if err != nil {
 		return nil, fmt.Errorf("ProcessAppleIAPRequestPayload: Tried to create a request but this failed: %s", err)
@@ -108,7 +113,7 @@ func ProcessAppleIAPRequestPayload(payload string, password string, isProduction
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("ProcessAppleIAPRequestPayload: Tried to read request from apple but got a non-200 status code (got '%d'). Request payload was: '%s', Apple's response payload was: '%s'", payloadStr[:10], resp.StatusCode, body)
+		return nil, fmt.Errorf("ProcessAppleIAPRequestPayload: Tried to read request from apple but got a non-200 status code (got '%d'). Request payload was: '%s', Apple's response payload was: '%s'", infoJson, resp.StatusCode, body)
 	}
 
 	receipt, err := NewAppleReceiptResponseFromData(string(body))
@@ -128,10 +133,11 @@ func ProcessAppleIAPRequestPayload(payload string, password string, isProduction
 		21008: "This receipt is from the production environment, but it was sent to the test environment for verification. Send it to the production environment instead.",
 	}
 	if codeMsg, ok := iapReceiptCodes[receipt.Status]; ok {
-		return nil, fmt.Errorf("ProcessAppleIAPRequestPayload failed to process receipt, it did get a 200 response back from apple but the status code on the receipt was invalid (%d) with request payload: '%s', response payload: '%s'.  Apple's reason for error is: '%s", payloadStr[:10], receipt.Status, body[:100], codeMsg)
+		return nil, fmt.Errorf("ProcessAppleIAPRequestPayload failed to process receipt, it did get a 200 response back from apple but the status code on the receipt was invalid (%d) with request payload: '%s', response payload: '%s'.  Apple's reason for error is: '%s", infoJson, receipt.Status, body, codeMsg)
 	}
 
 	return receipt, nil
+
 }
 
 /*

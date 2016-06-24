@@ -126,9 +126,8 @@ func TestYiap(t *testing.T) {
 		password := "password"
 		_, err := ProcessAppleIAPRequestPayload(requestPayload, password, true)
 
-		// Should fail with a 21007 error (should not be in a production environment)
-		So(err, ShouldNotEqual, nil)
-		So(strings.Contains(fmt.Sprintf("%s", err), "21007"), ShouldEqual, true)
+		// Should fail with a 21004 error (Should not be in a sandbox environment)
+		So(strings.Contains(fmt.Sprintf("%s", err), "21004"), ShouldEqual, true)
 
 		_, err = ProcessAppleIAPRequestPayload(requestPayload, password, false)
 
