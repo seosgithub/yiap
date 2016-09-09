@@ -212,11 +212,7 @@ func (t *AppleTransaction) GetIsRefunded() bool {
 func (t *AppleTransaction) GetTransactionId() string {
 	// Trials have the same transaction-id as normal transactions so we create
 	// a pseudo transaction id
-	if t.GetIsTrial() {
-		return fmt.Sprintf("%s.trial", t.TransactionId)
-	} else {
-		return t.TransactionId
-	}
+	return t.TransactionId
 }
 
 func (t *AppleTransaction) GetProductId() string {

@@ -51,12 +51,11 @@ func TestYiap(t *testing.T) {
 		checkErr(err)
 
 		So(receipt.GetStatus(), ShouldEqual, false)
-		So(len(receipt.GetTransactions()), ShouldEqual, 2)
+		So(len(receipt.GetTransactions()), ShouldEqual, 1)
 
 		txns := receipt.GetTransactions()
 
-		So(txns[0].GetIsTrial() || txns[1].GetIsTrial(), ShouldEqual, true)
-		So(txns[0].GetIsTrial() && txns[1].GetIsTrial(), ShouldNotEqual, true)
+		So(txns[0].GetIsTrial(), ShouldEqual, true)
 	})
 
 	Convey("Can decode receipt with cancellation (refund)", t, func() {
