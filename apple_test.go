@@ -30,6 +30,7 @@ func TestYiap(t *testing.T) {
 		fmt.Printf("%s", txns[0].GetExpiredDate())
 		So(txns[0].GetIsTrial(), ShouldEqual, false)
 		So(txns[0].GetQuantity(), ShouldEqual, 1)
+		So(txns[0].GetIsRefunded(), ShouldEqual, false)
 	})
 
 	Convey("Can decode another apple receipt", t, func() {
