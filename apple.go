@@ -160,17 +160,18 @@ func (a *AppleReceiptResponse) GetTransactions() []AppleTransaction {
 	// may not have duplicates of the `in-app` section.
 	resMap := map[string]AppleTransaction{}
 
-	for _, e := range a.LatestReceiptInfo {
+	for _, e := range a.Receipt.InApp {
 		resMap[e.GetTransactionId()] = e
 	}
 
-	for _, e := range a.Receipt.InApp {
-		_, ok := resMap[e.GetTransactionId()]
+	// Latest receipt info is more accurate
+	for _, e := range a.LatestReceiptInfo {
+		tx, ok := resMap[e.GetTransactionId()]
 		if ok {
-			if e.GetIsRefunded() {
-				tx := resMap[e.GetTransactionId()]
-				tx.CancellationDate = e.CancellationDate
+			if tx.CancellationDate != "" {
+				e.CancellationDate = tx.CancellationDate
 			}
+			resMap[e.GetTransactionId()] = e
 		} else {
 			resMap[e.GetTransactionId()] = e
 		}
