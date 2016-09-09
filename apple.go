@@ -22,7 +22,7 @@ type AppleTransaction struct {
 	Quantity         string `json: "quantity"`
 	PurchaseDate     string `json:"original_purchase_date_ms"`
 	ExpiredDate      string `json:"expires_date_ms"`
-	IsTrial          int    `json:"is_trial"`
+	IsTrial          string `json:"is_trial_period"`
 	CancellationDate string `json:"cancellation_date_ms"`
 
 	ProductId     string `json:"product_id"`
@@ -202,7 +202,7 @@ func (t *AppleTransaction) GetExpiredDate() time.Time {
 }
 
 func (t *AppleTransaction) GetIsTrial() bool {
-	return t.IsTrial == 1
+	return t.IsTrial == "true"
 }
 
 func (t *AppleTransaction) GetIsRefunded() bool {
@@ -210,7 +210,13 @@ func (t *AppleTransaction) GetIsRefunded() bool {
 }
 
 func (t *AppleTransaction) GetTransactionId() string {
-	return t.TransactionId
+	// Trials have the same transaction-id as normal transactions so we create
+	// a pseudo transaction id
+	if t.GetIsTrial() {
+		return fmt.Sprintf("%s.trial", t.TransactionId)
+	} else {
+		return t.TransactionId
+	}
 }
 
 func (t *AppleTransaction) GetProductId() string {

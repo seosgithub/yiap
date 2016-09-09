@@ -64,6 +64,16 @@ for _, tx := range transactions {
 }
 ```
 
+### Trials
+
+The transaction id does not reference a non-mutable transaction in all circumstances. A good example of this is the cancellation & trial fields.  
+
+When a trial expires, and a user renews, it results in an entry in `in_app` and an entry in `latest_receipt_info`. Both entries have the same `transaction_id` but one will contain `is_trial_period: true`, etc. entries in the `in_app` version.
+
+When a refund is issued, it results in an entry in `in_app` and an entry in `latest_receipt_info`. Both entries have the same `transaction_id` but one will contain `cancellation_date_ms`, etc. entries in the `in_app` version.
+
+In order to combat this problem, trial transactions are assigned a pseudo transaction id in the form of `234234882348.trial` because it's like it's own transaction.  For refunds, the transaction id is exactly the same so you will need to use the `GetIsRefunded()` function to check and handle that case accordingly.
+
 ## Communication
 > ♥ This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
