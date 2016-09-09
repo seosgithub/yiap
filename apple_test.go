@@ -43,6 +43,34 @@ func TestYiap(t *testing.T) {
 		So(len(receipt.GetTransactions()), ShouldEqual, 1)
 	})
 
+	Convey("Can decode receipt with cancellation (refund)", t, func() {
+		responseCode := getFixtureWithPath("apple/receipt3_response.json")
+
+		receipt, err := NewAppleReceiptResponseFromData(responseCode)
+		checkErr(err)
+
+		So(receipt.GetStatus(), ShouldEqual, false)
+		So(len(receipt.GetTransactions()), ShouldEqual, 1)
+
+		txns := receipt.GetTransactions()
+
+		So(txns[0].GetIsRefunded(), ShouldEqual, true)
+	})
+
+	Convey("Can decode receipt with cancellation (refund) this time in-app vs latest", t, func() {
+		responseCode := getFixtureWithPath("apple/receipt5_response.json")
+
+		receipt, err := NewAppleReceiptResponseFromData(responseCode)
+		checkErr(err)
+
+		So(receipt.GetStatus(), ShouldEqual, false)
+		So(len(receipt.GetTransactions()), ShouldEqual, 1)
+
+		txns := receipt.GetTransactions()
+
+		So(txns[0].GetIsRefunded(), ShouldEqual, true)
+	})
+
 	// Sometimes? apple receipts may contain entries in in-app seciton of the receipt which do not
 	// co-incide with the subscription results in `latest_receipt_info`.  in this cases, we are
 	// going to find all unique transaction items (identified by the transaction_id and then take

@@ -19,10 +19,11 @@ import (
 
 // Each transaction represents one payment from apple.
 type AppleTransaction struct {
-	Quantity     string `json: "quantity"`
-	PurchaseDate string `json:"original_purchase_date_ms"`
-	ExpiredDate  string `json:"expires_date_ms"`
-	IsTrial      int    `json:"is_trial"`
+	Quantity         string `json: "quantity"`
+	PurchaseDate     string `json:"original_purchase_date_ms"`
+	ExpiredDate      string `json:"expires_date_ms"`
+	IsTrial          int    `json:"is_trial"`
+	CancellationDate string `json:"cancellation_date_ms"`
 
 	ProductId     string `json:"product_id"`
 	TransactionId string `json:"transaction_id"`
@@ -164,7 +165,15 @@ func (a *AppleReceiptResponse) GetTransactions() []AppleTransaction {
 	}
 
 	for _, e := range a.Receipt.InApp {
-		resMap[e.GetTransactionId()] = e
+		_, ok := resMap[e.GetTransactionId()]
+		if ok {
+			if e.GetIsRefunded() {
+				tx := resMap[e.GetTransactionId()]
+				tx.CancellationDate = e.CancellationDate
+			}
+		} else {
+			resMap[e.GetTransactionId()] = e
+		}
 	}
 
 	res := []AppleTransaction{}
@@ -193,6 +202,10 @@ func (t *AppleTransaction) GetExpiredDate() time.Time {
 
 func (t *AppleTransaction) GetIsTrial() bool {
 	return t.IsTrial == 1
+}
+
+func (t *AppleTransaction) GetIsRefunded() bool {
+	return t.CancellationDate != ""
 }
 
 func (t *AppleTransaction) GetTransactionId() string {
